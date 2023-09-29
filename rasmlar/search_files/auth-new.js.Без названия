@@ -1,0 +1,959 @@
+(() => {
+    const lang = document.querySelector('html').lang;
+
+    const current_url = window.location.pathname
+      .replace(/^\/(uz|ru)?\/?/, '/')
+      .replace(/#\S+/g, '');
+    // Whitelist of URLs to not redirect to LK
+    const isWhitelistPath = false;
+    // const isWhitelistPath = current_url === '/products/internet-paketi' ||
+    //   /\/products\/tariffs\/.*\.html/.test(current_url) ||
+    //   /\/products\/services\/.*\.html/.test(current_url);
+
+    let analyticsLabel = '';
+  
+    const COMPONENT_NAME = 'auth-v2-modal';
+  
+    const isLoginForTheFirstTime = [
+      getCookie('isAuth'),
+      getCookie('accessPhone'),
+      getCookie('accessToken'),
+      getCookie('refreshToken')
+    ].indexOf(value => Boolean(value)) === -1;
+  
+    let isHomeInetPkgsContainer = false;
+  
+    setTimeout(() => {
+      if (current_url === '/') {
+        let $sentinel = document.querySelector('.my-internet-packages-section');
+        
+        if ($sentinel && 'IntersectionObserver' in window) {
+          let intersectionObserver = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                isHomeInetPkgsContainer = true;
+              } else {
+                isHomeInetPkgsContainer = false;
+              }
+            })
+          });
+    
+          intersectionObserver.observe($sentinel);
+        }
+      }
+    }, 0);
+  
+    const setGAUserId = (id) => {
+      // '998' + phone_value
+      try {
+        dataLayer.push({
+          'user_id': id
+        });
+    
+        gtag('config', 'GTM-PX3R2CG', {
+          'user_id': id
+        });
+      } catch(e) {
+        console.error(e);
+      }
+    }
+
+    const sendAuthEvent = (additionalInfo) => {
+      dataLayer.push({
+        event: "custom_event",
+        category: "authorization",
+        ...additionalInfo ? additionalInfo : {},
+        //...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+      });
+    }
+  
+    const modalLoading = {
+      show: (modal) => {
+          if (modal) {
+              const $loader = modal.querySelector(`.beeline-modal__loading`);
+  
+              if ($loader) {
+                  $loader.style.display = 'block';
+              }
+          }
+      },
+      hide: (modal) => {
+          if (modal) {
+              const $loader = modal.querySelector(`.beeline-modal__loading`);
+  
+              if ($loader) {
+                  $loader.style.display = 'none';
+              }
+          }
+      }
+    }
+  
+    window.__authFormV2 = {};
+  
+    window.__authFormV2.timers = [];
+    window.__authFormV2.resetTimers = function() {
+      window.__authFormV2.timers.forEach(interval => {
+        window.clearInterval(interval);
+      });
+      window.__authFormV2.timers = [];
+    }
+  
+    window.__authFormV2.resetAll = function() {
+      const $reg_input = document.getElementById(`${COMPONENT_NAME}-reg-phone`);
+      const $reg_btn_1 = document.getElementById(`${COMPONENT_NAME}-reg-btn`);
+      const $reg_sms_input = document.getElementById(`${COMPONENT_NAME}-reg-smscode`);
+      const $reg_part2 = document.getElementById(`${COMPONENT_NAME}-smscode-field`);
+  
+      const $login_input = document.getElementById(`${COMPONENT_NAME}-login-phone`);
+      const $login_input_pass = document.getElementById(`${COMPONENT_NAME}-login-pass`);
+  
+      const $recover_input = document.getElementById(`${COMPONENT_NAME}-recover-phone`);
+      const $recover_input_sms = document.getElementById(`${COMPONENT_NAME}-recover-smscode`);
+      const $recover_input_newpass = document.getElementById(`${COMPONENT_NAME}-recover-newpass`);
+  
+      const $recover_part2_fields = document.getElementById(`${COMPONENT_NAME}-recover-fields`);
+      const $recover_btn_1 = document.getElementById(`${COMPONENT_NAME}-recover-btn-1`);
+  
+      const $reg_tab_btn = document.getElementById(`${COMPONENT_NAME}-tab-2`);
+      
+  
+      if ($reg_input) {
+          $reg_input.value = '';
+      }
+  
+      if ($reg_btn_1) {
+          $reg_btn_1.style = 'display: initial;';
+      }
+  
+      if ($reg_sms_input) {
+          $reg_sms_input.value = '';
+      }
+  
+      if ($reg_part2) {
+          $reg_part2.style = 'display: none;';
+      }
+  
+      if ($recover_input) {
+          $recover_input.value = '';
+      }
+  
+      if ($login_input && $login_input_pass) {
+          $login_input.value = '';
+          $login_input_pass.value = ''
+      }
+  
+      if ($recover_input_sms && $recover_input_newpass) {
+        $recover_input_sms.value = '';
+        $recover_input_newpass.value = '';
+      }
+  
+      if ($recover_part2_fields) {
+        $recover_part2_fields.style = 'display: none;';
+      }
+  
+      if ($recover_btn_1) {
+        $recover_btn_1.style = 'display: initial;';
+      }
+  
+      if ($reg_tab_btn) {
+          $reg_tab_btn.click();
+      }
+  
+      window.__authFormV2.resetTimers();
+    }
+  
+    window.__authFormV2.showAuthModal = function(fromWhere) {
+      MicroModal.show(COMPONENT_NAME, {
+        onShow() {
+            if (window.__authFormV2) {
+                if (typeof window.__authFormV2.resetAll === 'function') {
+                    window.__authFormV2.resetAll();
+                }
+            }
+        },
+        onClose() {
+          localStorage.removeItem('pending_service_connect');
+
+          if (window.__authFormV2) {
+              if (typeof window.__authFormV2.resetAll === 'function') {
+                  window.__authFormV2.resetAll();
+              }
+          }
+        }
+      });
+
+      if (fromWhere) {
+        analyticsLabel = fromWhere;
+      } else {
+        analyticsLabel = '';
+      }
+
+      dataLayer.push({
+        event: "custom_event",
+        category: "authorization",
+        action: "entrance",
+        ...analyticsLabel ? { label: analyticsLabel } : {},
+        //...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+      });
+    }
+  
+    window.__authFormV2.closeAuthModal = function() {
+      modalLoading.hide();
+      window.__authFormV2.resetAll();
+      MicroModal.close(COMPONENT_NAME);
+    }
+  
+    window.__authFormV2.checkPendingConnects = function() {
+      if (getCookie('accessToken') && getCookie('accessPhone')) {
+        const pendingConnectData = localStorage.getItem('pending_service_connect');
+        if (pendingConnectData) {
+          const { soc, data, type, sum, isDonation } = JSON.parse(pendingConnectData);
+          old_site_connect_service(soc, data, type, sum, isDonation, true);
+          localStorage.removeItem('pending_service_connect');
+        }
+      }
+    }
+  
+    const notify = new Notyf({
+      duration: 2000,
+      dismissible: true,
+      ripple: false,
+      position: {
+        x: 'right',
+        y: 'top'
+      }
+    });
+  
+    const showSuccessAlert = () => {
+      // swal({
+      //   title: lang === 'ru' ? 'Вы были успешно аутентифицированы' : 'Siz autentifikatsiyadan muvaffaqiyatli o‘tdingiz.',
+      //   icon: "success",
+      //   timer: 2000,
+      //   buttons: false,
+      // })
+      notify.success(lang === 'ru' ? 'Вы были успешно аутентифицированы' : 'Siz autentifikatsiyadan muvaffaqiyatli o‘tdingiz.');
+    }
+  
+    const modal_html = `
+          <div class="micromodal" id="${COMPONENT_NAME}" aria-hidden="true">
+              <div class="micromodal__overlay" tabindex="-1">
+                  <div class="theme-modal auth-modal-container">
+                  <svg class="close-modal" onClick="MicroModal.close('${COMPONENT_NAME}')" xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 50 50" width="15px" height="15px"><path d="M 7.71875 6.28125 L 6.28125 7.71875 L 23.5625 25 L 6.28125 42.28125 L 7.71875 43.71875 L 25 26.4375 L 42.28125 43.71875 L 43.71875 42.28125 L 26.4375 25 L 43.71875 7.71875 L 42.28125 6.28125 L 25 23.5625 Z"/></svg>
+                      <div class="theme-modal-body">
+                          <div class="beeline-modal__loading"></div>
+                          <img src="/wp-content/themes/new-theme/assets/img/icons/main-logo.svg" />
+                          <nav class="auth-tab-navigation">
+                              <ul>
+                                  <li><button type="button" data-formid="${COMPONENT_NAME}-reg" id="${COMPONENT_NAME}-tab-2" class="active">${lang === 'ru' ? 'Вход по SMS' : 'SMS orqali kirish'}</button></li>
+                                  <li><button type="button" data-formid="${COMPONENT_NAME}-login" id="${COMPONENT_NAME}-tab-1">${lang === 'ru' ? 'Вход по паролю' : 'Parol bilan kirish'}</button></li>
+                              </ul>
+                          </nav>
+  
+                          <!-- Регистрация / Вход по СМС -->
+                          <div id="${COMPONENT_NAME}-reg" class="auth-form-tab-content active">
+                              <div class="row password_field">
+                                  <div class="col-12">
+                                      <small aria-describedby="loginPhoneInput" class="form-text text-muted text-left">${lang === 'ru' ? 'Номер телефона' : 'Telefon raqami'}</small>
+                                  </div>
+                              </div>
+                              <div class="row mb-3">
+                                  <div class="col-12">
+                                      <div class="input-group">
+                                          <div class="input-group-prepend">
+                                              <div class="input-group-text">+998</div>
+                                          </div>
+                                          <input type="tel" maxlength="9" id="${COMPONENT_NAME}-reg-phone" class="form-control" />
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="row password_field">
+                                  <div class="col-12">
+                                      <button class="btn btn-block" id="${COMPONENT_NAME}-reg-btn">${lang === 'ru' ? 'Продолжить' : 'Davom etish'}</button>
+                                  </div>
+                              </div>
+  
+                              <div id="${COMPONENT_NAME}-smscode-field" style="display: none;">
+                                <div class="row password_field">
+                                    <div class="col-12">
+                                        <small aria-describedby="loginPhoneInput" class="form-text text-muted text-left">${lang === 'ru' ? 'Код из SMS' : 'SMS dan kod'}</small>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-12">
+                                        <div class="input-group">
+                                            <input type="text" maxlength="4" id="${COMPONENT_NAME}-reg-smscode" class="form-control" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                  <small class="col-12 text-left">
+                                    <div id="${COMPONENT_NAME}-sms-countdown"></div>
+                                    <a href="javascript:;" id="${COMPONENT_NAME}-sms-countdown-resend" class="${COMPONENT_NAME}__reset-link" style="display:none;">
+                                      ${lang === 'ru' ? 'Выслать код еще раз?' : 'Kodni qayta yuborish'}
+                                    </a>
+                                  </small>
+                                </div>
+                                <div class="row password_field">
+                                    <div class="col-12">
+                                        <button class="btn btn-block" id="${COMPONENT_NAME}-reg-btn-2">${lang === 'ru' ? 'Продолжить' : 'Davom etish'}</button>
+                                    </div>
+                                </div>
+                              </div>
+                          </div>
+  
+                          <!-- Аутентификация -->
+                          <div id="${COMPONENT_NAME}-login" class="auth-form-tab-content">
+                              <div class="row password_field">
+                                  <div class="col-12">
+                                      <small aria-describedby="loginPhoneInput" class="form-text text-muted text-left">${lang === 'ru' ? 'Номер телефона' : 'Telefon raqami'}</small>
+                                  </div>
+                              </div>
+                              <div class="row mb-3">
+                                  <div class="col-12">
+                                      <div class="input-group">
+                                          <div class="input-group-prepend">
+                                              <div class="input-group-text">+998</div>
+                                          </div>
+                                          <input type="tel" maxlength="9" id="${COMPONENT_NAME}-login-phone" class="form-control" />
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="row password_field">
+                                  <div class="col-12">
+                                      <small aria-describedby="loginPhoneInput" class="form-text text-muted">${lang === 'ru' ? 'Пароль' : 'Parol'}</small>
+                                  </div>
+                              </div>
+                              <div class="row">
+                                  <div class="col-12 password_field">
+                                      <input
+                                          id="${COMPONENT_NAME}-login-pass"
+                                          type="password"
+                                          title="${lang === 'ru' ? 'Ваш пароль должен содержать не менее 8 символов, включая латинские буквы и 1 цифру.' : 'Parolingiz kamida 8 ta belgidan iborat boʻlishi kerak, jumladan lotin harflari va 1 ta raqam.'}"
+                                          placement="auto" class="form-control" />
+                                      <span class="field-icon svg-eye-off svg-eye-off-dims toggle-password"></span>
+                                  </div>
+                              </div>
+                              <div class="row mb-3 mt-3">
+                                  <div class="col-6 mt-1 branded-checkbox">
+                                      <label class="container-branded-subitems">
+                                          ${lang === 'ru' ? 'Запомнить меня' : 'Eslab qolish'}
+                                          <input type="checkbox" id="${COMPONENT_NAME}-login-remember"/>
+                                          <span class="checkmark"></span>
+                                      </label>
+                                  </div>
+                                  <div class="col-6">
+                                      <a href="#" id="${COMPONENT_NAME}-recover-link" data-formid="${COMPONENT_NAME}-recover" class="password_field clear-password-link">${lang === 'ru' ? 'Сбросить пароль' : 'Parolni qayta o\'rnating'}</a>
+                                  </div>
+                              </div>
+                              <div class="row password_field">
+                                  <div class="col-12">
+                                      <button class="btn btn-block" id="${COMPONENT_NAME}-login-btn">${lang === 'ru' ? 'Войти' : 'Kirish'}</button>
+                                  </div>
+                              </div>
+                          </div>
+                          
+                          
+                          <!-- СБРОС ПАРОЛЯ -->
+                          <div id="${COMPONENT_NAME}-recover" class="auth-form-tab-content">
+                              <div class="row password_field">
+                                  <div class="col-12">
+                                      <i><small>${lang === 'ru' ? 'Сбросить пароль' : 'Parolni qayta o\'rnating'}</small></i>
+                                      <small aria-describedby="loginPhoneInput" class="form-text text-muted text-left">${lang === 'ru' ? 'Номер телефона' : 'Telefon raqami'}</small>
+                                  </div>
+                              </div>
+                              <div class="row mb-3">
+                                  <div class="col-12">
+                                      <div class="input-group">
+                                          <div class="input-group-prepend">
+                                              <div class="input-group-text">+998</div>
+                                          </div>
+                                          <input type="tel" maxlength="9" id="${COMPONENT_NAME}-recover-phone" class="form-control" />
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="row password_field">
+                                  <div class="col-12">
+                                      <button class="btn btn-block" id="${COMPONENT_NAME}-recover-btn-1">${lang === 'ru' ? 'Продолжить' : 'Davom etish'}</button>
+                                  </div>
+                              </div>
+  
+                              <div id="${COMPONENT_NAME}-recover-fields" style="display: none;">
+                                <div class="row password_field">
+                                    <div class="col-12">
+                                        <small aria-describedby="loginPhoneInput" class="form-text text-muted text-left">${lang === 'ru' ? 'Код из SMS' : 'SMS dan kod'}</small>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <div class="input-group">
+                                            <input type="text" maxlength="4" id="${COMPONENT_NAME}-recover-smscode" class="form-control" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row password_field">
+                                    <div class="col-12">
+                                        <small aria-describedby="loginPhoneInput" class="form-text text-muted text-left">${lang === 'ru' ? 'Новый пароль' : 'Yangi parol'}</small>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <div class="input-group">
+                                            <input type="password" id="${COMPONENT_NAME}-recover-newpass" class="form-control" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row password_field">
+                                    <div class="col-12">
+                                        <button class="btn btn-block" id="${COMPONENT_NAME}-recover-btn-2">${lang === 'ru' ? 'Продолжить' : 'Davom etish'}</button>
+                                    </div>
+                                </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      `;
+  
+    document.body.insertAdjacentHTML('beforeend', modal_html);
+  
+    const $modal = document.getElementById(`${COMPONENT_NAME}`);
+  
+    const $tabs = $modal.querySelectorAll(`.auth-tab-navigation ul li button`);
+    const $forms = $modal.querySelectorAll('.auth-form-tab-content');
+  
+    function tabChangeHandler(e) {
+      $tabs.forEach(el => el.classList.remove('active'));
+      e.target.classList.add('active');
+  
+      const btn_form_id = e.target.getAttribute('data-formid');
+  
+      $forms.forEach(form => {
+        const form_id = form.id;
+        form.classList.remove('active');
+  
+        if (form_id === btn_form_id) {
+          form.classList.add('active');
+        }
+      })
+    }
+  
+    $tabs.forEach(tabBtn => {
+      tabBtn.addEventListener('click', tabChangeHandler)
+    });
+  
+    const wrongNumberAlert = () => {
+      swal({
+        title: lang === 'ru' ? 'Введенный вами номер не найден' : 'Siz kiritgan raqam topilmadi',
+        icon: 'error',
+      })
+    }
+  
+    const trackFirstTimeLogin = (action, callback) => {
+      if (isLoginForTheFirstTime) {
+        try {
+          const phone_value = getCookie('accessPhone');
+          axios.get(`/api/refill/args/telco/${phone_value}/settings`)
+            .then(({ data }) => {
+              let category = 'private';
+  
+              if (data.user.customerType !== 'person') {
+                category = 'corporate'
+              }
+              dataLayer.push('event', 'authorization', {
+                category,
+                action
+              })
+            })
+            .catch((e) => {
+              console.error('auth-v2 module - error fetching customerType', e);
+            })
+            .finally(callback)
+        } catch(e) {
+          console.error('auth-v2 module - analytics', e);
+        }
+      } else {
+        callback();
+      }
+    }
+  
+    const $reg_form = document.getElementById(`${COMPONENT_NAME}-reg`);
+    const $login_form = document.getElementById(`${COMPONENT_NAME}-login`);
+  
+    const $login_btn = document.getElementById(`${COMPONENT_NAME}-login-btn`);
+    const $reg_btn = document.getElementById(`${COMPONENT_NAME}-reg-btn`);
+    const $recover_link = document.getElementById(`${COMPONENT_NAME}-recover-link`);
+  
+    const $recover_btn_1 = document.getElementById(`${COMPONENT_NAME}-recover-btn-1`);
+    const $recover_btn_2 = document.getElementById(`${COMPONENT_NAME}-recover-btn-2`);
+  
+    $recover_link.addEventListener('click', tabChangeHandler);
+  
+    $recover_btn_1.addEventListener('click', () => {
+      const $phone = document.getElementById(`${COMPONENT_NAME}-recover-phone`);
+  
+      if ($phone) {
+        const phone_value = $phone.value;
+  
+        if (phone_value) {
+          if (phone_value.length < 9) {
+            wrongNumberAlert();
+          } else {
+            recover_pass_part_1(phone_value);
+          }
+        }
+      }
+    });
+  
+    $recover_btn_2.addEventListener('click', () => {
+      const $phone = document.getElementById(`${COMPONENT_NAME}-recover-phone`);
+      const $new_pass = document.getElementById(`${COMPONENT_NAME}-recover-newpass`);
+      const $sms_code = document.getElementById(`${COMPONENT_NAME}-recover-smscode`);
+  
+      if ($phone && $new_pass && $sms_code) {
+        if ($phone.value && $new_pass.value && $sms_code.value) {
+          recover_pass_part_2($phone.value, $sms_code.value, $new_pass.value);
+        } else {
+          swal({
+            title: lang === 'ru' ? 'Проверьте введенные данные и попробуйте еще раз' : 'Kiritilgan maʻlumotlarni tekshiring va qayta urinib koʻring',
+            icon: 'error',
+          })
+        }
+      }
+    })
+  
+    $login_btn.addEventListener('click', () => {
+      const phone = $login_form.querySelector(`#${COMPONENT_NAME}-login-phone`).value;
+      const pass = $login_form.querySelector(`#${COMPONENT_NAME}-login-pass`).value;
+  
+      login(phone, pass);
+    })
+  
+    const $sms_code_field = document.getElementById(`${COMPONENT_NAME}-smscode-field`);
+    const $sms_code_input = document.getElementById(`${COMPONENT_NAME}-reg-smscode`);
+    const $sms_code_btn = document.getElementById(`${COMPONENT_NAME}-reg-btn-2`);
+    const $sms_code_phone = document.getElementById(`${COMPONENT_NAME}-reg-phone`);
+  
+    $reg_btn.addEventListener('click', () => {
+      register_part_1($sms_code_phone.value);
+      // gtag('event', 'reg_btn_click', {
+      //   'page_url': window.location.href,
+      // })
+    });
+  
+    const $sms_code_resend_link = document.getElementById(`${COMPONENT_NAME}-sms-countdown-resend`);
+  
+    $sms_code_resend_link.addEventListener('click', () => {
+      register_part_1($sms_code_phone.value);
+    })
+  
+    $sms_code_btn.addEventListener('click', () => {
+      register_part_2($sms_code_phone.value, $sms_code_input.value);
+    })
+  
+    function reset_register() {
+      $sms_code_field.style = 'display: none;';
+      $reg_btn.style = 'display: initial';
+      $sms_code_input.value = '';
+    }
+  
+    function reset_recover_form() {
+      const $recover_fields = document.getElementById(`${COMPONENT_NAME}-recover-fields`);
+      // const $phone = document.getElementById(`${COMPONENT_NAME}-recover-phone`);
+      const $new_pass = document.getElementById(`${COMPONENT_NAME}-recover-newpass`);
+      const $sms_code = document.getElementById(`${COMPONENT_NAME}-recover-smscode`);
+  
+      $recover_fields.style.display = 'none';
+      $recover_btn_1.style.display = 'initial';
+  
+      // $phone.value = '';
+      $new_pass.value = '';
+      $sms_code.value = '';
+    }
+  
+    // Register aka Login with SMS
+    function register_part_1(phone_value) {
+      modalLoading.show($modal);
+      axios.get(`/api/refill/args/auth/998${phone_value}/checkexists`)
+        .then(check => {
+          axios.post(`/api/refill/args/auth/998${phone_value}/otp/send`, {}, {
+            headers: {
+              'xAppKey': 'Gr8M2k5FQkbK'
+            }
+          })
+          .then(() => {
+            $sms_code_field.style = 'display: block;';
+            $reg_btn.style = 'display: none';
+            $sms_code_input.focus();
+            $sms_code_btn.removeAttribute('disabled');
+            $sms_code_resend_link.style = 'display: none;';
+            $sms_code_input.value = '';
+  
+  
+            const $countDown = document.getElementById(`${COMPONENT_NAME}-sms-countdown`)
+            const COUNTDOWN_MINUTES = 2;
+  
+            const timerLabel = lang === 'ru' ? 'Срок действия SMS-кода: ' : 'SMS kodining amal qilish muddati: ';
+  
+            const startTimer = () => {
+              let duration = 60 * COUNTDOWN_MINUTES;
+              let timer = duration, minutes, seconds;
+              let started = false;
+  
+              const countdown = () => {
+                  minutes = parseInt(timer / 60, 10);
+                  seconds = parseInt(timer % 60, 10);
+          
+                  minutes = minutes < 10 ? "0" + minutes : minutes;
+                  seconds = seconds < 10 ? "0" + seconds : seconds;
+          
+                  $countDown.innerText = timerLabel + minutes + ":" + seconds;
+  
+                  if (!started) {
+                      timer--;
+                      started = true;
+                  }
+              }
+  
+              countdown();
+  
+              const interval = setInterval(function () {
+                  countdown();
+  
+                  if (--timer < 0) {
+                      clearInterval(interval);
+                      $countDown.innerText = lang === 'ru' ? 'Срок действия SMS-кода истёк' : 'SMS-kodning amal qilish muddati o‘tdi';
+                      
+                      const $reg_btn_resend = document.getElementById(`${COMPONENT_NAME}-sms-countdown-resend`);
+  
+                      if ($reg_btn_resend) {
+                        $reg_btn_resend.style = 'display: initial;';
+                      }
+  
+                      const $reg_btn_2 = document.getElementById(`${COMPONENT_NAME}-reg-btn-2`);
+                      if ($reg_btn_2) {
+                        $reg_btn_2.setAttribute('disabled', true)
+                      }
+                  }
+              }, 1000);
+  
+              window.__authFormV2.timers.push(interval);
+            };
+  
+            startTimer();
+
+            dataLayer.push({
+              event: "custom_event",
+              category: "authorization",
+              action: "sms",
+              ...analyticsLabel ? { label: analyticsLabel } : {},
+              // ...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+            });
+          }).catch(() => {
+            swal({
+              title: lang === 'ru' ? 'Ошибка при отправки кода' : 'Kodni yuborishda xatolik yuz berdi',
+              icon: 'error',
+            })
+          }).finally(() => {
+            modalLoading.hide($modal);
+          })
+        })
+        .catch(() => {
+          modalLoading.hide($modal);
+          wrongNumberAlert();
+        })
+    }
+  
+    function register_part_2(phone_value, sms_code) {
+      modalLoading.show($modal);
+      axios.post(`/api/refill/args/auth/login`, { account: '998' + phone_value, password: sms_code })
+        .then(login => {
+          if (login.data && login.data.accessToken) {
+            setCookie('isAuth', 'true', login.data.expiresIn, true);
+            setCookie('accessPhone', '998' + phone_value, login.data.expiresIn, true);
+            setCookie('accessToken', login.data.accessToken, login.data.expiresIn, true);
+            setCookie('refreshToken', login.data.refreshToken, login.data.expiresIn, true);
+            setCookie('phonePrefix', '+998', 365, true);
+            setCookie('phoneMask', '9', 365, true);
+            save_all_cookies();
+            watch_auth = 'true';
+
+            //setGAUserId('998' + phone_value);
+
+            // init_header_mockup();
+
+            setTimeout(() => {
+
+              showSuccessAlert();
+
+              render_auth_area();
+
+              window.__authFormV2.checkPendingConnects();
+              window.__authFormV2.closeAuthModal();
+            }, 2000);
+
+            dataLayer.push({
+              event: "custom_event",
+              category: "authorization",
+              action: "success",
+              ...analyticsLabel ? { label: analyticsLabel } : {},
+              ...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+            });
+          }
+        })
+        .catch(err => {
+          modalLoading.hide($modal);
+          swal({
+            title: lang === 'ru' ? 'Введен неверный код' : 'Yaroqsiz kod kiritildi',
+            icon: 'error',
+          })
+        })
+    }
+  
+    // Login
+    function login(phone_value, password_value) {
+      if (!phone_value || !password_value) {
+        swal({
+          title: lang === 'ru' ? 'Поля номера и/или пароля не должны быть пустым' : 'Raqam va/yoki parol maydonlari boʻsh boʻlmasligi kerak',
+          icon: 'error',
+        })
+        return;
+      }
+
+      const $rememberCheckbox = document.getElementById(`${COMPONENT_NAME}-login-remember`);
+      const rememberMe = $rememberCheckbox ? $rememberCheckbox.checked : false;
+
+      modalLoading.show($modal);
+      axios.get(`/api/refill/args/auth/998${phone_value}/checkexists`)
+        .then(check => {
+          if (check.data.status) axios.post(`/api/refill/args/auth/login`, {
+            account: '998' + phone_value,
+            password: password_value
+          })
+            .then(login => {
+              if (login.data && login.data.accessToken) {
+                const isSessionCookie = rememberMe ? false : true;
+
+                const cookieExpiryDate = login.data.expiresIn / 60 / 60 / 24;
+
+                setCookie('isAuth', 'true', cookieExpiryDate, isSessionCookie);
+                setCookie('accessPhone', '998' + phone_value, cookieExpiryDate, isSessionCookie);
+                setCookie('accessToken', login.data.accessToken, cookieExpiryDate, isSessionCookie);
+                setCookie('refreshToken', login.data.refreshToken, cookieExpiryDate, isSessionCookie);
+                setCookie('phonePrefix', '+998', cookieExpiryDate, isSessionCookie);
+                setCookie('phoneMask', '9', cookieExpiryDate, isSessionCookie);
+                save_all_cookies();
+                watch_auth = 'true'
+
+                //setGAUserId('998' + phone_value);
+
+                // init_header_mockup()
+                setTimeout(() => {
+                  showSuccessAlert();
+
+                  render_auth_area();
+                  window.__authFormV2.checkPendingConnects();
+                  window.__authFormV2.closeAuthModal();
+                }, 2000);
+
+                dataLayer.push({
+                  event: "custom_event",
+                  category: "authorization",
+                  action: "success",
+                  ...analyticsLabel ? { label: analyticsLabel } : {},
+                  ...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+                });
+              }
+            })
+            .catch(err => {
+              modalLoading.hide($modal);
+              $login_form.querySelector(`#${COMPONENT_NAME}-login-pass`).value = '';
+              swal({
+                title: lang === 'ru' ? 'Ошибка аутентификации' : 'Autentifikatsiya xatosi',
+                text: lang === 'ru' ? 'Возможно вы ввели неверный пароль' : 'Siz notoʻgʻri parol kiritgan boʻlishingiz mumkin',
+                icon: 'error',
+              })
+            })
+        })
+        .catch(err => {
+          modalLoading.hide($modal);
+  
+          $login_form.querySelector(`#${COMPONENT_NAME}-login-phone`).value = '';
+          $login_form.querySelector(`#${COMPONENT_NAME}-login-pass`).value = '';
+          swal({
+            title: lang === 'ru' ? 'Введенный вами номер не найден' : 'Siz kiritgan raqam topilmadi',
+            icon: 'error',
+          })
+        })
+    }
+  
+    // Password reset
+    function recover_pass_part_1(phone_value) {
+      modalLoading.show($modal);
+      axios.get(`/api/refill/args/auth/998${phone_value}/checkexists`)
+        .then(() => {
+            axios.post(`/api/refill/args/auth/998${phone_value}/otp/send`, {}, {
+              headers: {
+                'xAppKey': 'Gr8M2k5FQkbK'
+              }
+            })
+            .then(() => {
+              const $recover_fields = document.getElementById(`${COMPONENT_NAME}-recover-fields`);
+              $recover_fields.style.display = 'initial';
+              $recover_btn_1.style.display = 'none';
+            }, function onError() {
+              reset_recover_form();
+              swal({
+                title: lang === 'ru' ? 'Ошибка при отправки кода' : 'Kodni yuborishda xatolik yuz berdi',
+                icon: 'error',
+              })
+            })
+            .finally(() => {
+              modalLoading.hide($modal);
+            })
+        }, function onError() {
+          modalLoading.hide($modal);
+          wrongNumberAlert();
+        })
+    }
+  
+    function recover_pass_part_2(phone_value, sms_code_value, new_password) {
+      modalLoading.show($modal);
+      axios.post(`/api/refill/args/auth/998${phone_value}/password/set`, { newPassword: new_password, oldPassword: '', otp: sms_code_value})
+        .then((d) => {
+          axios.post(`/api/refill/args/auth/login`, {  account: '998' + phone_value, password: new_password })
+            .then(login => {
+              if (login.data && login.data.accessToken) {
+                setCookie('isAuth', 'true', login.data.expiresIn, true);
+                setCookie('accessPhone', '998' + phone_value, login.data.expiresIn, true);
+                setCookie('accessToken', login.data.accessToken, login.data.expiresIn, true, 'none')
+                setCookie('refreshToken', login.data.refreshToken, login.data.expiresIn, true, 'none')
+                setCookie('phonePrefix', '+998', 365, true)
+                setCookie('phoneMask', '9', 365, true)
+                save_all_cookies();
+                watch_auth = 'true'
+
+                //setGAUserId('998' + phone_value);
+
+                // init_header_mockup();
+                showSuccessAlert();
+
+                render_auth_area();
+                window.__authFormV2.checkPendingConnects();
+                window.__authFormV2.closeAuthModal();
+
+                dataLayer.push({
+                  event: "custom_event",
+                  category: "authorization",
+                  action: "success",
+                  ...analyticsLabel ? { label: analyticsLabel } : {},
+                  ...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+                });
+                
+                // setTimeout(() => {
+                //     window.location.reload();
+                //   }, 1000);
+
+                // let formData = new FormData()
+                // formData.append('token', login.data.accessToken)
+                // formData.append('expires', login.data.expiresIn)
+                // axios.post('https://beeline.uz/restservices/api/a1/set-cookie', formData)
+                //   .then(() => {
+                //     let get_page = current_url.replace('/ru/', '/').replace('/uz/', '/')
+                //     setCookie('isAuth', 'true', login.data.expiresIn, true);
+                //     setCookie('accessPhone', '998' + phone_value, login.data.expiresIn, true);
+                //     setCookie('accessToken', login.data.accessToken, login.data.expiresIn, true)
+                //     setCookie('refreshToken', login.data.refreshToken, login.data.expiresIn, true)
+                //     setCookie('phonePrefix', '+998', 365, true)
+                //     setCookie('phoneMask', '9', 365, true)
+                //     watch_auth = 'true'
+  
+                //     // setGAUserId('998' + phone_value);
+  
+                //     // init_header_mockup();
+                //     window.__authFormV2.closeAuthModal();
+                //     showSuccessAlert();
+                    
+                //     setTimeout(() => {
+                //         window.location.reload();
+                //       }, 2000);
+
+                //     // trackFirstTimeLogin('sms', () => {
+                //     //   if (!isWhitelistPath && !isHomeInetPkgsContainer) {
+                //     //     location.href = `/${lang}/dashboard`
+                //     //   } else {
+                //     //     window.__authFormV2.checkPendingConnects();
+                //     //   }
+                //     // })
+                //     // window.location.reload();
+                //   })
+                //   .catch(() => {
+                //     modalLoading.hide($modal);
+                //     swal({
+                //       title: lang === 'ru' ? 'Ошибка аутентификации' : 'Autentifikatsiya xatosi',
+                //       icon: 'error',
+                //     });
+                //   })
+              }
+            }, function onError() {
+              modalLoading.hide($modal);
+              reset_recover_form();
+              swal({
+                title: lang === 'ru' ? 'Ошибка аутентификации' : 'Autentifikatsiya xatosi',
+                icon: 'error',
+              });
+            })
+        }, function onError() {
+          modalLoading.hide($modal);
+          swal({
+            title: lang === 'ru' ? 'Проверьте введенные данные и попробуйте еще раз' : 'Kiritilgan ma\'lumotlarni tekshiring va qayta urinib ko\'ring',
+            icon: 'error',
+          });
+        })
+    }
+  
+    function reset_all() {
+      document.getElementById(`#${COMPONENT_NAME}-login-pass`).value = '';
+      
+      document.getElementById(`${COMPONENT_NAME}-tab-2`).click();
+  
+      reset_recover_form();
+      reset_register();
+    }
+  
+      
+    function render_auth_area() {
+      let login_button = document.getElementById('ms-login-button');
+
+      if (login_button) {
+        if (getCookie('isAuth') && getCookie('accessPhone')) {
+          const phone = getCookie('accessPhone');
+          login_button.innerHTML = '+' + phone.replace(/^([0-9]{3})([0-9]{2})([0-9]{3})([0-9]{2})([0-9]{2})$/,'$1 $2 $3-$4-$5');
+
+          login_button.onclick = function() {
+            const currentLang = document.querySelector('html').lang || '';
+            document.location.href = `/${currentLang}/dashboard`;
+          }
+        } else {
+          login_button.onclick = function(e) {
+            e.preventDefault();
+            if (window.__authFormV2) {
+              if (typeof window.__authFormV2.showAuthModal === 'function') {
+                window.__authFormV2.showAuthModal('header');
+              }
+            }
+          }
+        }
+      }
+
+      if (typeof window.__showDashboardBlock === 'function') {
+        window.__showDashboardBlock();
+      }
+    }
+
+    render_auth_area();
+
+    window.__authFormV2.checkPendingConnects();
+
+
+  })();

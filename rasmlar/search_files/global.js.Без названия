@@ -1,0 +1,602 @@
+let watch_auth = ''
+const current_url = window.location.pathname
+    .replace(/^\/(uz|ru)?\/?/, '/')
+    .replace(/#\S+/g, '')
+function getCookie(cname) {
+    var name = cname + '=';
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return '';
+}
+function checkSuccessPayParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const successPay = urlParams.get('success_pay');
+    let lang = document.querySelector('html').lang
+
+    if (successPay === 'true') {
+        if(lang === 'ru') {
+            swal({ 
+                title: 'Успешно', 
+                text: 'Вы успешно оплатили счёт.', 
+                icon: 'success'
+            })
+        } else if(lang === 'uz') {
+            swal({ 
+                title: 'Ajoyib', 
+                text: 'Hisob tolovi amalga oshirildi.', 
+                icon: 'success'
+            })
+        }
+    }
+    else if (successPay === 'false') {
+        if(lang === 'ru') {
+            swal({ 
+                title: 'Ошибка', 
+                text: 'Произошла непредвиденная ошибка, пожалуйста проверьте счёт своей карты оплаты. Если это не помогло обратитесь в call-center за дополнительной информацией.',
+                icon: 'error'
+            })
+        } else if(lang === 'uz') {
+            swal({ 
+                title: 'Xato', 
+                text: 'Kutilmagan xatolik yuz berdi, toʻlov kartani hisobini tekshiring. Agar bu yordam bermasa, qo\'shimcha ma\'lumot olish uchun 0611-ga qiling.',
+                icon: 'error'
+            })
+        }
+    }
+}
+function replace_and_connect() {
+    let all_buttons = document.querySelectorAll('.fast_connect')
+    if(all_buttons && all_buttons.length) all_buttons.forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault()
+            let title = btn.querySelector('.title').innerText,
+                soc = btn.classList[3]
+            old_site_connect_service(soc, {title}, 'packages', 'event-page')
+        })
+    })
+}
+function juma_muborak_events_replace_page() {
+    let days = [
+        'Воскресенье',
+        'Понедельник',
+        'Вторник',
+        'Среда',
+        'Четверг',
+        'Пятница',
+        'Суббота'
+    ],
+    current_url = window.location.pathname
+        .replace('http://localhost:3000/', '/')
+        .replace('https://ms-dev.beeline.uz/', '/')
+        .replace('https://ms-dev.beeline.uz/ru', '/')
+        .replace('https://beeline.uz/', '/')
+        .replace('https://beeline.uz/uz', '/')
+        .replace('https://beeline.uz/ru', '/')
+        .replace('http://ms-dev.beeline.uz/uz', '/')
+        .replace('/ru/', '/')
+        .replace('/uz/', '/')
+        .replace('/ru', '/')
+        .replace('/uz', '/')
+        .replace(/#\S+/g, ''),
+    d = new Date(),
+    n = d.getDay(),
+    lang = document.querySelector('html').lang,
+    current_day = days[n],
+    juma_day_text = lang === 'ru' ? '<button class="btn btn-square disabled">Будет доступно в пятницу</button>' : '<button class="btn btn-square disabled">Juma kuni mavjud boʼladi</button>'
+    // juma_day_text = '-';
+    if(current_url === '/events/actions/juma-muborak' || current_url === '/events/actions/juma-muborak.html') {
+        new Promise(async(event_resolve) => {
+            let post_thumbnail = ''
+                if(document.querySelector('.action-img-page')) {
+                    post_thumbnail = await document.querySelector('.action-img-page').attributes['data-src'].nodeValue
+                }
+                content = document.querySelector('.ms-event-white-box').innerHTML,
+                content_box = document.querySelector('.ms-event-white-box')
+            if(content_box) {
+                let new_mockup = `
+                    <div class="ms-event-page">
+                        <div class="container">
+                            <div class="ms-event-page-box">
+                                ${post_thumbnail ? `
+                                    <img class="ms-event-thumbnail" src="${post_thumbnail}" />
+                                ` : ''}
+                                <div class="ms-event-content">
+                                    ${content}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+                content_box.parentElement.parentElement.outerHTML = new_mockup
+            }
+            event_resolve()
+        })
+        .then(() => {
+            if(document.querySelector('.ms-event-white-box-footer')) document.querySelector('.ms-event-white-box-footer').remove()
+            replace_and_connect()
+            let get_table = document.querySelector('.ms-event-content .desktop-table')
+                table_json = {
+                    ths: [],
+                    trs: [],
+                }
+            get_table ? get_table.querySelectorAll('thead th').forEach((th) => {
+                table_json.ths.push(th.innerHTML)
+            }) : null
+            get_table ? get_table.querySelectorAll('tbody tr').forEach((tr) => {
+                let obj = {}
+                tr.querySelectorAll('td').forEach((td, index) => {
+                    if(index === 0) obj.name = td.innerHTML
+                    if(index === 1) obj.period = td.innerHTML
+                    if(index === 2) obj.price = td.innerHTML
+                    if(index === 3) obj.ussd = td.innerHTML
+                    if(index === 4) obj.ili = td.innerHTML
+                    if(index === 5) obj.connect_btn = td.innerHTML
+                })
+                table_json.trs.push(obj)
+            }) : null
+            let one_desktop_container = `
+                <table class="desktop-table">
+                    <thead>
+                        <tr>
+                            <th>${document.querySelector('.desktop-table thead th:nth-child(1)').innerText}</th>
+                            <th>${document.querySelector('.desktop-table thead th:nth-child(2)').innerText}</th>
+                            <th>${document.querySelector('.desktop-table thead th:nth-child(3)').innerText}</th>
+                            <th>${document.querySelector('.desktop-table thead th:nth-child(4)').innerText}</th>
+                            <th>${document.querySelector('.desktop-table thead th:nth-child(5)').innerText}</th>
+                            <th>${document.querySelector('.desktop-table thead th:nth-child(6)').innerText}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${table_json.trs.map((tr) => {
+                            return `
+                                <tr>
+                                    <td>${tr.name}</td>
+                                    <td>${tr.period}</td>
+                                    <td>${tr.price}</td>
+                                    <td>${current_day === 'Пятница' ? tr.ussd : juma_day_text}</td>
+                                    <td>${current_day === 'Пятница' ? tr.ili : ''}</td>
+                                    <td>${current_day === 'Пятница' ? tr.connect_btn : ''}</td>
+                                </tr>
+                            `
+                        }).join('')}
+                    </tbody>
+                </table>`
+            let one_tablet_container = ``
+                table_json.trs.forEach((tr) => {
+                    one_tablet_container += `
+                        <div class="mobile-table-container">
+                            <div class="mobile-title-container">
+                                <strong class="title-table">
+                                    ${tr.name}
+                                </strong>
+                                <p>${tr.period}</p>
+                            </div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th class="td-price-ms">${lang === 'ru' ? 'Цена' : 'Narxi'}</th>
+                                        <th class="td-connect-ussd-ms">${lang === 'ru' ? 'Подключение' : '	Ulanish'}</th>
+                                        <th class="td-ili-ms">&nbsp;</th>
+                                        <th class="td-connect-ms">&nbsp;</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="td-price-ms">${tr.price}</td>
+                                        <td class="td-connect-ussd-ms">${current_day === 'Пятница' ? tr.ussd : juma_day_text}</td>
+                                        <td class="td-ili-ms">${current_day === 'Пятница' ? tr.ili : ''}</td>
+                                        <td class="td-connect-ms">${current_day === 'Пятница' ? tr.connect_btn : ''}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    `
+                })
+            let one_mobile_container = ``
+                table_json.trs.forEach((tr) => {
+                    one_mobile_container += `
+                        <div class="mobile-table-container mobile-st">
+                            <div class="mobile-title-container">
+                                <strong class="title-table">
+                                    ${tr.name}
+                                </strong>
+                                <p>${tr.period}</p>
+                            </div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th class="td-price-ms">${lang === 'ru' ? 'Цена' : 'Narxi'}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="td-price-ms">${tr.price}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th class="td-connect-ussd-ms">${lang === 'ru' ? 'Подключение' : '	Ulanish'}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="td-connect-ussd-ms">
+                                            ${current_day === 'Пятница' ? tr.ussd : ''}
+                                            ${current_day === 'Пятница' ? tr.ili : ''}
+                                            ${current_day === 'Пятница' ? tr.connect_btn : juma_day_text}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    `
+                })
+            let new_mockup = ``
+                new_mockup += one_desktop_container
+                new_mockup += `
+                    <div class="all-mobile-tables tablet-st">
+                        ${one_tablet_container}
+                    </div>
+                `
+                new_mockup += `
+                    <div class="all-mobile-tables mobile-st">
+                        ${one_mobile_container}
+                    </div>
+                `
+            get_table.outerHTML = new_mockup
+            replace_and_connect()
+        })
+    }
+}
+checkSuccessPayParams();
+juma_muborak_events_replace_page()
+function setCookie(cname, cvalue, exdays, isSession = false) {
+    let expires = '';
+    if (isSession) {
+        expires = 'expires=0';
+    } else {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        expires = 'expires=' + d.toUTCString();
+    }
+    document.cookie = cname + '=' + cvalue + ';' + expires + ';samesite=lax;path=/;secure';
+
+}
+function logout_func() {
+    let all_lk_links = document.querySelectorAll('.lk__links')
+    if(all_lk_links) {
+        for (let index = 0; index < all_lk_links.length; index++) {
+            let boxes = all_lk_links[index].children
+            for (let index = 0; index < boxes.length; index++) {
+                let link = boxes[index]
+                if(link.innerText === 'Chiqish' || link.innerText === 'Выйти') {
+                    link.addEventListener('click', (e) => {
+                        is_auth = false
+                        user_phone = null
+                        my_preloader(false)
+                    })
+                }
+            }
+        }
+    }
+}
+function old_site_connect_service(soc, data, srvType, sum, isDonation, noAsk) {
+    let user_phone = getCookie('accessPhone');
+    const lang = document.querySelector('html').lang;
+
+    let type = srvType;
+
+    if (['pacakges', 'packages'].includes(srvType)) {
+        type = 'package';
+    } else if (['tariffs', 'tariff'].includes(srvType)) {
+        type = 'tariff';
+    } else if (['services', 'service'].includes(srvType)) {
+        type = 'service';
+    }
+
+    if(getCookie('isAuth')) {
+        user_phone = user_phone.replace(/(\d{3})(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 ($2) $3-$4-$5")
+        let get_text = ''
+        if(lang === 'ru') {
+            let share_or_connect = 'подключить'
+            if(soc === 'PACK_5') share_or_connect = 'Поменять'
+            if(soc === 'PACK_7_SH') share_or_connect = 'Поделится'
+            if (isDonation) {
+                get_text = `Вы хотите сделать пожертвование в ${sum} сум с номера +${user_phone}?`
+            } else {
+                get_text = `Вы уверены что хотите ${share_or_connect} ${data.title} на номер: +${user_phone}?`
+            }
+        } else { // (lang === 'uz') 
+            if(soc === 'JM_MB_3') get_text = `Siz ${user_phone} raqamiga ${data.title} paketini ulamoqchimisiz?`
+            else if(soc === 'PACK_5') get_text = `Siz ${user_phone} raqamda ${data.title} almashtirmoqchimisiz?`
+            else get_text = `Siz ${user_phone}  raqamiga ${data.days ? data.days + ' kunga' : ''} ${data.title.replace(' paketi', ' ')} paketini ulamoqchimisiz?`
+            if(type === 'tariff') {
+                get_text = `Siz ${user_phone} raqamiga ${data.days ? data.days + ' kunga' : ''} ${data.title} tarifni ulamoqchimisiz?`
+            }
+            if(type === 'service') {
+                get_text = `Siz ${user_phone} raqamiga ${data.days ? data.days + ' kunga' : ''} ${data.title} xizmat ulamoqchimisiz?`
+            }
+            if(isDonation) {
+                get_text = `+${user_phone} raqamidan ${sum} so'm xayriya qilmoqchimisiz?`
+            }
+        }
+
+        let modal_buttons = {
+            cancel: lang === 'ru' ? 'Отменить' : 'Bekor qilish',
+            catch: lang === 'ru' ? 'Подключить' : 'Ulanish'
+        }
+
+        if (isDonation) {
+            modal_buttons = {
+                cancel: lang === 'ru' ? 'Отменить' : 'Bekor qilish',
+                catch: lang === 'ru' ? 'Пожертвовать' : 'Xayriya qilish'
+            }
+        }
+
+        function request_connect() {
+            let current_phone = getCookie('accessPhone'),
+                    current_lang = lang,
+                    conversion_form_data = new FormData()
+                
+                conversion_form_data.append('accountNumber', Number(current_phone))
+                conversion_form_data.append('link', document.location.href)
+                conversion_form_data.append('name', data.title)
+                conversion_form_data.append('type', type === 'tariff' ? 'MobileTariff' : type === 'package' ? 'MobileService' :  type === 'service' ? 'MobileService' : '');
+                axios.post('/api/refill/args/telco/' + current_phone + '/subscriptions/' + current_phone + '/orders', {
+                        action: 'add',
+                        offerId: soc,
+                        serviceId: soc
+                    })
+                    .then((r) => {
+                        const STATUSES = {
+                            NO_MONEY: 'no-money',
+                            CORPORATE: 'postpaid'
+                        }
+
+                        const CONNECTION_TRESHOLD = 250;
+
+                        axios.put('/api/refill/args/telco/' + current_phone + '/subscriptions/' + current_phone + '/orders/' + r.data.orderId, {
+                            action: 'add',
+                            offerId: soc,
+                            serviceId: soc
+                        })
+                        .then((resOrder) => {
+                            // Отправляем данные на сервер
+                            axios.get('/api/refill/args/telco/v2/' + getCookie('accessPhone') + '/subscriptions/' + getCookie('accessPhone') + '/dashboard-updated')
+                            .then(async res => {
+                                let current_status = 'unkown';
+                                if(res.data.balances && !res.data.balances.length) {
+                                    current_status = STATUSES.CORPORATE;
+                                } else if((res.data.balances && res.data.balances.length) && (res.data.balances[0].paymentMeanData.usage.leftover >= (Number(sum) + CONNECTION_TRESHOLD))) {
+                                    current_status = 'success';
+                                } else if((res.data.balances && res.data.balances.length) && (res.data.balances[0].paymentMeanData.usage.leftover < (Number(sum) + CONNECTION_TRESHOLD))) {
+                                    current_status = STATUSES.NO_MONEY;
+                                }
+                                let formData = new FormData();
+                                    formData.append('action', 'my_custom_ajax')
+                                    formData.append('name', data.title)
+                                    formData.append('price', Number(sum))
+                                    formData.append('phone', current_phone)
+                                    formData.append('status', current_status)
+                                    formData.append('link', document.location.href)
+                                    formData.append('product_id', soc)
+                                    formData.append('category', type)
+                                axios.post('/wp-admin/admin-ajax.php', formData)
+                                .catch(function(error) {
+                                    console.log(error);
+                                });
+
+                                if (current_status === STATUSES.NO_MONEY) {
+                                    const urlParams = new URLSearchParams(window.location.search);
+                                    const isTestDev = urlParams.get('isTestDev');
+
+                                    const TRUST_PAY = 'trust';
+                                    const TOPUP = 'topup';
+
+                                    swal({
+                                        text: lang === 'ru' ? 'У вас недостаточно средств на счету' : 'Hisobingizda yetarli mablag‘ yo‘q',
+                                        icon: 'error',
+                                        buttons: true,
+                                        buttons: {
+                                            [TOPUP]: lang === 'ru' ? 'Пополнить баланс' : 'Popolnit balans',
+                                            ...isTestDev ? { [TRUST_PAY]: lang === 'ru' ? 'Доверительный платеж' : 'Ishonchli to’lov' } : {},
+                                            cancel: lang === 'ru' ? 'Отменить' : 'Bekor qilish',
+                                        }
+                                    })
+                                    .then(choice => {
+                                        let errorText = lang === 'ru' ? 'Ошибка при выполнении запроса' : 'So‘rovni bajarishda xatolik yuz berdi';
+
+                                        if(choice === TOPUP) {
+                                            if (window.__BeepulLiteForm) {
+                                                const onSuccess = () => {
+                                                    window.__BeepulLiteForm.closeModal();
+                                                    old_site_connect_service(soc, data, type, sum, Boolean(isDonation), true);
+                                                }
+
+                                                window.__BeepulLiteForm.openModal({
+                                                    mobNumber: getCookie('accessPhone')
+                                                }, onSuccess);
+                                            }
+                                        } else if (choice === TRUST_PAY) {
+                                            axios.get(`/api/refill/trust-payment/141`, {
+                                                headers: {
+                                                    'xAppKey': 'Gr8M2k5FQkbK'
+                                                }
+                                            }).then(res => {
+                                                if (res.status === 200) {
+                                                    old_site_connect_service(soc, data, type, sum, Boolean(isDonation), true);
+                                                } else {
+                                                    swal({
+                                                        tite: lang === 'ru' ? 'Ошибка' : 'Xato',
+                                                        text: errorText,
+                                                    })
+                                                }
+                                            }).catch(() => {
+                                                swal({
+                                                    tite: lang === 'ru' ? 'Ошибка' : 'Xato',
+                                                    text: errorText,
+                                                })
+                                            })
+                                        }
+                                    })
+
+                                    if (isTestDev) {
+                                        setTimeout(() => {
+                                            const $swalFooter = document.querySelector('.swal-footer');
+                                            $swalFooter.style = 'display: flex; gap: 10px; flex-direction: column;'
+                                        }, 0);
+                                    }
+                                } else if (current_status === STATUSES.CORPORATE) {
+                                    swal({
+                                        title: lang === 'ru' ? 'Внимание' : 'Diqqat',
+                                        text: lang === 'ru' ? 'Подключение данной услуги недоступно для юридических лиц' : 'Ushbu xizmatga ulanish yuridik shaxslar uchun mavjud emas',
+                                        icon: 'warning',
+                                        buttons: lang === 'ru' ? 'Закрыть' : 'Yopish'
+                                    });
+                                } else {
+                                    swal({
+                                        title: lang === 'ru' ? 'Отлично' : 'Ajoyib',
+                                        text: resOrder.data.text[current_lang],
+                                        icon: 'success',
+                                        buttons: lang === 'ru' ? 'Закрыть' : 'Yopish'
+                                    });
+                                }
+
+                                dataLayer.push({
+                                    event: 'purchase',
+                                    ecommerce: {
+                                        transaction_id: r.data.orderId,
+                                        value: sum,
+                                        currency: 'UZS',
+                                        items: [{
+                                            type: type,
+                                            item_id: soc,
+                                            item_name: data.title
+                                        }]
+                                    }
+                                });
+                            })
+                        })
+                    })
+                    .catch(err => {
+                        let errorText = lang === 'ru' ? 'Ошибка при выполнении запроса' : 'So‘rovni bajarishda xatolik yuz berdi';
+                        try { errorText = err.response.data.text[current_lang] } catch(e) {}
+
+                        swal({
+                            title: lang === 'ru' ? 'Ошибка' : 'Xato',
+                            text: errorText,
+                            icon: 'error',
+                            buttons: lang === 'ru' ? 'Попробовать ещё' : 'Qayta urinib ko\'ring'
+                        })
+                    })
+                // axios.post('https://beeline.uz/api/refill/args/auth-data/account/conversion', conversion_form_data, {
+                //     withCredentials: true,
+                // })
+                // .then(() => {
+                    
+                // })
+                // .catch(err => {
+                //     swal({
+                //         title: lang === 'ru' ? 'Ошибка' : 'Xato',
+                //         text: err.response.data.text[current_lang],
+                //         icon: 'error',
+                //         buttons: lang === 'ru' ? 'Попробовать ещё' : 'Qayta urinib ko\'ring'
+                //     })
+                // })
+        }
+
+        if (noAsk) {
+            request_connect();
+        } else {
+            swal({
+                text: get_text,
+                icon: 'warning',
+                buttons: true,
+                dangerMode: true,
+                buttons: modal_buttons
+            })
+            .then(will => {
+                if(will) {
+                    request_connect();
+                }
+            })
+        }
+    } else {
+        localStorage.setItem('pending_service_connect', JSON.stringify({
+            soc,
+            data,
+            type,
+            sum,
+            isDonation: Boolean(isDonation)
+        }));
+        // let login_button = document.querySelector('.logged-out') || document.querySelector('#ms-login-button')
+        // if(login_button) {
+        //     login_button.click()
+        // }
+        if (window.__authFormV2) {
+            if (typeof window.__authFormV2.showAuthModal === 'function') {
+                window.__authFormV2.showAuthModal();
+            }
+        }
+    }
+}
+localStorage.removeItem('pending_service_connect');
+// ---
+const selectElement = document.getElementById('choose-region-select');
+if(selectElement) {
+    let allButtonToRegions = document.querySelectorAll('.current-region-choosed')
+        allButtonToRegions.forEach((item) => {
+            item.innerText = selectElement.options[selectElement.selectedIndex].innerText
+        })
+    selectElement.addEventListener('change', function() {
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        setCookie('ms-region', selectedOption.value, 7);
+        if(!allButtonToRegions && allButtonToRegions.length < 1) return false;
+        allButtonToRegions.forEach((item) => {
+            item.innerText = selectedOption.value
+        })
+        MicroModal.close('refresh-region-select')
+    })
+}
+function save_cookies_daily() {
+    var today = new Date();
+    var expiration = new Date(today.getTime() + (24 * 60 * 60 * 1000)); // один день
+
+    if(localStorage.getItem('cookies_saved_date') == today.getDate()) {
+        return;
+    }
+
+    jQuery.ajax({
+        url: '/wp-admin/admin-ajax.php',
+        type: 'POST',
+        data: {
+            action: 'save_user_cookies',
+            cookies: document.cookie
+        }
+    });
+
+    localStorage.setItem('cookies_saved_date', today.getDate());
+    document.cookie = "cookie_name=cookie_value;expires=" + expiration.toUTCString() + ";path=/";
+}
+function save_all_cookies() {
+    jQuery.ajax({
+        url: '/wp-admin/admin-ajax.php',
+        type: 'POST',
+        data: {
+            action: 'save_user_cookies',
+            cookies: document.cookie
+        }
+    });
+}
+save_cookies_daily();

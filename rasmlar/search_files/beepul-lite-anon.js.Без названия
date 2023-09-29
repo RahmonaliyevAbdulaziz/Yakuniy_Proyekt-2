@@ -1,0 +1,56 @@
+/* Beepul loader */
+(() => {
+    const isProd = document.location.hostname === 'beeline.uz';
+
+    function load_style(src, id) {
+        const stylesheet = document.createElement('link');
+        stylesheet.rel = 'stylesheet';
+        stylesheet.href = src;
+
+        document.head.append(stylesheet);
+    }
+
+    async function load_script(src, id) {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+
+            if (id) {
+                script.id = id;
+            }
+
+            script.addEventListener('load', () => {
+                resolve();
+            });
+
+            document.body.append(script);
+        })
+    };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const isTestDev = urlParams.get('isTestDev');
+    // const variantParam = urlParams.get('variant') || 'b';
+    const variantParam = 'a';
+
+    load_style('/assets/css/refresh-forms-b.css');
+    load_style('/assets/css/beepul-lite-anon-b.css');
+    load_script(`/assets/js/beepul-lite-anon-${variantParam}.js?v=080520231141`);
+    
+    // Блок кода для теста
+    // 
+    // if (isTestDev) {
+    //     if (isProd) {
+    //         load_style('/assets/css/refresh-forms-b.css');
+    //         load_style('/assets/css/beepul-lite-anon-b.css');
+    //         load_script(`/assets/js/beepul-lite-anon-${variantParam}.js`);
+    //     } else {
+    //         load_style('/styles/refresh-forms-b.css');
+    //         load_style('/styles/beepul-lite-anon-b.css');
+    //         load_script(`/js/beepul-lite-anon-${variantParam}.js`);
+    //     }
+    // } else {
+    //     load_style('/assets/css/refresh-forms-old.css');
+    //     load_style('/assets/css/beepul-lite-anon-old.css');
+    //     load_script('/assets/js/beepul-lite-anon-old.js');
+    // }
+})();

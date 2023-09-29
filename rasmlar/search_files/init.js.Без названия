@@ -1,0 +1,995 @@
+document.addEventListener('DOMContentLoaded', () => {
+  // Google analytics custom events
+
+  // 0. Home banners
+  const $desktopBanners = document.querySelectorAll('.banner-main-flex a');
+  const $mobileBanners = document.querySelectorAll('.ms-mobile-banner-slider a');
+
+  const $longBanner = document.querySelector('.all-services-section__banner-link');
+
+  const bannerEvents = [
+    { action: 'big' },
+    { action: 'small_1' },
+    { action: 'small_2' },
+    { action: 'long_narrow' },
+  ];
+
+  if ($longBanner) {
+    $longBanner.addEventListener('click', () => {
+      dataLayer.push({
+        event: "custom_event",
+        category: "banner",
+        action: bannerEvents[3],
+        label: 'main',
+        ...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+      });
+    })
+  }
+
+  if ($desktopBanners) {
+    $desktopBanners.forEach((el, index) => {
+      el.addEventListener('click', () => {
+        dataLayer.push({
+          event: "custom_event",
+          category: "banner",
+          action: bannerEvents[index],
+          label: 'main',
+          ...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+        });
+      })
+    })
+  }
+
+  if ($mobileBanners) {
+    $mobileBanners.forEach((el, index) => {
+      el.addEventListener('click', () => {
+        dataLayer.push({
+          event: "custom_event",
+          category: "banner",
+          action: bannerEvents[index],
+          label: 'main',
+          ...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+        });
+      })
+    })
+  }
+
+  // 1. Beeboxes
+  const beeboxEvents = {
+    '/ru/konstruktor/': {
+      action: 'tariff_constructor'
+    },
+    '/uz/konstruktor/': {
+      action: 'tariff_constructor'
+    },
+    'https://nomer.beeline.uz/': {
+      action: 'pick_up_number',
+    },
+    '#beepul-lite-box': {
+      action: 'top_up_balance',
+    },
+    'https://beeline.uz/ru/products/services/zamena-sim-karty': {
+      action: "change_sim"
+    },
+    'https://nomer.beeline.uz/order-esim': {
+      action: "e_sim",
+    },
+    '/ru/coverage-and-offices/': {
+      action: "coverage_offices",
+    },
+    '/ru/coverage-and-offices/': {
+      action: "coverage_offices",
+    }
+  }
+
+  const $beeBoxes = document.querySelectorAll('.ms-bee-boxes-list-container .ms-bee-box');
+  $beeBoxes.forEach(el => {
+    const $links = el.querySelectorAll('a');
+    if ($links) {
+      $links.forEach($beeboxLink => {
+        const link = $beeboxLink.getAttribute('href');
+        if(beeboxEvents[link]) {
+          $beeboxLink.addEventListener('click', () => {
+            dataLayer.push({
+              event: "custom_event",
+              category: "box",
+              action: beeboxEvents[link].action,
+              ...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+            });
+          })
+        }
+      })
+    }
+  });
+
+  // 2. popular tariffs
+
+  const popTariffs = {
+    'https://beeline.uz/ru/products/tariffs/hammasi-zor-1': { 'action': 'hammasi_zor_1' },
+    'https://beeline.uz/ru/products/tariffs/hammasi-zor-2': { 'action': 'hammasi_zor_2' },
+    'https://beeline.uz/ru/products/tariffs/hammasi-zor-3': { 'action': 'hammasi_zor_3' },
+    'https://beeline.uz/ru/products/tariffs/hammasi-zor-4': { 'action': 'hammasi_zor_4' },
+  }
+
+  const isTariffsPage = [
+    '/ru/products/tariffs',
+    '/ru/products/tariffs/',
+    '/uz/products/tariffs',
+    '/uz/products/tariffs/',
+  ].some((path) => window.location.pathname.split('?')[0] === path);
+
+  if (isTariffsPage) {
+    const $tariffLinks = document.querySelectorAll('.main-page-tariffs-list-container .ms-one-box a');
+
+    $tariffLinks.forEach($tariffLink => {
+      const obj = popTariffs[$tariffLink.getAttribute('href')];
+
+      if (obj) {
+        $tariffLink.addEventListener('click', () => {
+          dataLayer.push({
+            event: "custom_event",
+            category: "pop_tariff",
+            action: obj.action,
+            ...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+          });
+        })
+      }
+    })
+  }
+
+  const $allTariffsLink = document.querySelectorAll(
+    `a[href="/ru/products/tariffs"],
+    a[href="/uz/products/tariffs"],
+    a[href="/ru/products/tariffs/"],
+    a[href="/uz/products/tariffs/"]`
+  );
+
+  if ($allTariffsLink) {
+    $allTariffsLink.forEach(el => {
+      el.addEventListener('click', () => {
+        dataLayer.push({
+          event: "custom_event",
+          category: "pop_tariff",
+          action: 'all_rates',
+          ...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+        });
+      });
+    })
+  }
+
+  // 3. Inet packages
+  const isInetPkgsPage = [
+    '/ru/products/packages',
+    '/uz/products/packages',
+    '/ru/products/packages/',
+    '/uz/products/packages/',
+  ].some((path) => window.location.pathname.split('?')[0] === path);
+
+  if (isInetPkgsPage) {
+    const $inetPkgLinks = document.querySelectorAll('.my-internet-packages-section .ms-one-box a');
+    const $inetPkgConnectBtns = document.querySelectorAll('.my-internet-packages-section .ms-one-box .ms-r-side .black-btn');
+
+    $inetPkgLinks.forEach(el => {
+      el.addEventListener('click', () => {
+        dataLayer.push({
+          event: "custom_event",
+          category: "Internet_packages",
+          action: 'more',
+          ...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+        });
+      })
+    });
+
+    $inetPkgConnectBtns.forEach(el => {
+      el.addEventListener('click', () => {
+        dataLayer.push({
+          event: "custom_event",
+          category: "Internet_packages",
+          action: 'to_plug',
+          ...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+        });
+      })
+    })
+  }
+
+  const $allPackagesLink = document.querySelectorAll(
+    `a[href="/ru/products/packages"],
+    a[href="/uz/products/packages"],
+    a[href="/ru/products/packages/"],
+    a[href="/uz/products/packages/"]`
+  );
+
+  if ($allPackagesLink) {
+    $allPackagesLink.forEach(el => {
+      el.addEventListener('click', () => {
+        dataLayer.push({
+          event: "custom_event",
+          category: "Internet_packages",
+          action: 'view_all',
+          ...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+        });
+      })
+    })
+  };
+
+
+  // 4. Services
+  const isServicesPage = [
+    '/ru/products/services',
+    '/uz/products/services',
+    '/ru/products/services/',
+    '/uz/products/services/',
+  ].some((path) => window.location.pathname.split('?')[0] === path);
+
+  if (isServicesPage) {
+    const popServices = {
+      'https://beeline.uz/ru/products/services/beeline-app': { action: 'beelinevapp' },
+      'https://beeline.uz/ru/products/services/beeline-music-radio': { action: 'beelinemusic' },
+      'https://beeline.uz/ru/products/services/beeline-tv': { action: 'beelinetv' },
+      'https://beeline.uz/ru/products/services/perezagruzka': { action: 'reboot' },
+
+      'https://beeline.uz/uz/products/services/beeline-app': { action: 'beelinevapp' },
+      'https://beeline.uz/uz/products/services/beeline-music-radio': { action: 'beelinemusic' },
+      'https://beeline.uz/uz/products/services/beeline-tv': { action: 'beelinetv' },
+      'https://beeline.uz/uz/products/services/perezagruzka': { action: 'reboot' },
+    }
+
+    const $serviceLinks = document.querySelectorAll('.refresh-services-list-section .refresh-services-list-card a');
+    $serviceLinks.forEach(el => {
+      const srvLink = popServices[el.getAttribute('href')];
+
+      if (srvLink) {
+        el.addEventListener('click', () => {
+          dataLayer.push({
+            event: "custom_event",
+            category: "services",
+            action: srvLink.action,
+            ...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+          });
+        })
+      }
+    })
+  }
+
+  const $allServicesLinks = document.querySelectorAll(
+    `a[href="/ru/products/services"],
+    a[href="/uz/products/services"],
+    a[href="/ru/products/services/"],
+    a[href="/uz/products/services/"]`
+  );
+
+  if ($allServicesLinks) {
+    $allServicesLinks.forEach(el => {
+      el.addEventListener('click', () => {
+        dataLayer.push({
+          event: "custom_event",
+          category: "services",
+          action: 'all',
+          ...getCookie('accessPhone') ? { user_id: getCookie('accessPhone') } : {}
+        });
+      })
+    })
+  }
+
+  /* [start] Zaschita Yandex (yandex plus) */
+  (() => {
+    if (
+        document.location.pathname === '/uz/products/services/yandeks-plyus' || document.location.pathname === '/ru/products/services/yandeks-plyus' ||
+        document.location.pathname === '/uz/products/services/yandex-plus' || document.location.pathname === '/ru/products/services/yandex-plus'
+        ) {
+        const $target = document.querySelector('.tariff-page-block-yellow__connect-block');
+        if ($target) {
+          $target.remove();
+
+          const $malikaBtn = document.querySelector('#js__nsw-widgetnx__container button');
+          if ($malikaBtn) {
+            $malikaBtn.style.marginBottom = '70px';
+          }
+        }
+    }
+  })();
+  /* [end] Zaschita Yandex (yandex plus) */
+
+  /* [start] Login page */
+  (() => {
+    if (document.location.pathname === '/ru/signin' || document.location.pathname === '/uz/signin') {
+      const $loginBtn1 = document.querySelector('#ms-login-button');
+
+      const $loginBtn2 = document.querySelector('#ms-login-button-page');
+
+      function showAuthModal() {
+        if ($loginBtn1) {
+          $loginBtn1.click();
+        }
+      }
+
+      if ($loginBtn2) {
+        $loginBtn2.addEventListener('click', () => {
+          showAuthModal();
+        })
+      }
+
+      showAuthModal();
+
+      const lang = document.querySelector('html').lang;
+
+      function showDashboardBlock() {
+        const $dashboardBlock = document.getElementById('ms-login-dashboard-block');
+
+        if (getCookie('isAuth')) {
+          if ($loginBtn2) {
+            $loginBtn2.style.display = 'none';
+          }
+
+          if ($dashboardBlock) {
+            $dashboardBlock.style.display = 'block';
+          }
+        }
+      }
+
+      showDashboardBlock();
+
+      window.__showDashboardBlock = showDashboardBlock;
+    }
+  })();
+  /* [end]  Login page */
+
+  /* [start] Add English switcher */
+  (() => {
+    const addMissingLanguage = (langCode, label) => {
+      const $langSelectBox = document.querySelector('.ms-lang-select-box');
+
+      const $dummyNav = document.createElement('nav');
+      $dummyNav.className = 'ms-lang-select ms-lang-select-border-fix';
+
+      const html = `
+        <ul>
+          <li>
+            <a href="https://beeline.uz/${langCode}/welcome-new">${label}</a>
+          </li>
+        </ul>`;
+
+      if ($langSelectBox) {
+        $dummyNav.innerHTML = html;
+        $langSelectBox.appendChild($dummyNav);
+      }
+    };
+
+    if (document.location.pathname.includes('/ru/welcome-new')) {
+      addMissingLanguage('en', 'ENG');
+    } else if (document.location.pathname.includes('/uz/welcome') || document.location.pathname.includes('/uz/welcome-new')) {
+      addMissingLanguage('en', 'ENG');
+    } else if (document.location.pathname.includes('/en/welcome-new')) {
+      addMissingLanguage('uz', 'O\'ZB');
+    }
+  })();
+  /* [end] Add English switcher */
+
+  /* [start] add all internet button */
+  (() => {
+    if (document.location.pathname.includes('/ru/products/packages') || document.location.pathname.includes('/uz/products/packages')) {
+      const $dummyDiv = document.createElement('div');
+      $dummyDiv.style = 'display: flex; justify-content: center; margin-bottom: 30px;'
+      const curr_lang = document.querySelector('html').lang;
+  
+      $dummyDiv.innerHTML = `
+        <a href="/${curr_lang}/vse-internet-pakety" class="btn">
+          ${curr_lang === 'ru' ? 'Все интернет-пакеты' : 'Barcha internet-paketlar'}
+        </a>
+      `
+
+      const $section = document.querySelector('.all-services-section');
+
+      if ($section) {
+        $section.append($dummyDiv);
+      }
+    }
+  })();
+  /* [end] add all internet button */
+
+});
+window.onload = () => {
+  const $tariffSliders = document.querySelectorAll('.tariff-slider');
+
+  (() => {
+    const style = document.createElement('style');
+
+    style.textContent = `
+      @media (max-width: 1169px) {
+        .new-slider-nav-prev, .new-slider-nav-next {
+          display: none;
+        }
+      }
+
+      .new-slider-nav-hidden {
+        display: none;
+      }
+    `;
+
+    document.head.appendChild(style);
+  })();
+
+  $tariffSliders.forEach(el => {
+    el.insertAdjacentHTML(
+      'beforeend',
+      `<svg class="new-slider-nav-prev" style="position: absolute;
+      left: 0;
+      top: 50%;
+      z-index: 999999;
+      pointer-events: all;
+      cursor: pointer;
+      transform: translateY(-50%);
+  }" width="64px" height="64px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path opacity="0.6" d="M16.19 2H7.81C4.17 2 2 4.17 2 7.81V16.18C2 19.83 4.17 22 7.81 22H16.18C19.82 22 21.99 19.83 21.99 16.19V7.81C22 4.17 19.83 2 16.19 2Z" fill="#FFC800"/>
+        <path transform="scale (-1, 1)" transform-origin="center" d="M18.53 11.4699L14.24 7.1799C13.95 6.8899 13.47 6.8899 13.18 7.1799C12.89 7.4699 12.89 7.9499 13.18 8.2399L16.19 11.2499H6C5.59 11.2499 5.25 11.5899 5.25 11.9999C5.25 12.4099 5.59 12.7499 6 12.7499H16.19L13.18 15.7599C12.89 16.0499 12.89 16.5299 13.18 16.8199C13.33 16.9699 13.52 17.0399 13.71 17.0399C13.9 17.0399 14.09 16.9699 14.24 16.8199L18.53 12.5299C18.67 12.3899 18.75 12.1999 18.75 11.9999C18.75 11.7999 18.67 11.6099 18.53 11.4699Z" fill="#000000"/>
+      </svg>`
+    );
+    el.insertAdjacentHTML(
+      'beforeend',
+      `<svg class="new-slider-nav-next" style="position: absolute;
+      right: 0;
+      top: 50%;
+      z-index: 999999;
+      pointer-events: all;
+      cursor: pointer;
+      transform: translateY(-50%);
+  }" width="64px" height="64px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path opacity="0.6" d="M16.19 2H7.81C4.17 2 2 4.17 2 7.81V16.18C2 19.83 4.17 22 7.81 22H16.18C19.82 22 21.99 19.83 21.99 16.19V7.81C22 4.17 19.83 2 16.19 2Z" fill="#FFC800"/>
+        <path d="M18.53 11.4699L14.24 7.1799C13.95 6.8899 13.47 6.8899 13.18 7.1799C12.89 7.4699 12.89 7.9499 13.18 8.2399L16.19 11.2499H6C5.59 11.2499 5.25 11.5899 5.25 11.9999C5.25 12.4099 5.59 12.7499 6 12.7499H16.19L13.18 15.7599C12.89 16.0499 12.89 16.5299 13.18 16.8199C13.33 16.9699 13.52 17.0399 13.71 17.0399C13.9 17.0399 14.09 16.9699 14.24 16.8199L18.53 12.5299C18.67 12.3899 18.75 12.1999 18.75 11.9999C18.75 11.7999 18.67 11.6099 18.53 11.4699Z" fill="#000000"/>
+      </svg>`
+    );
+  })
+
+  new Swiper(".tariff-slider", {
+      loop: false,
+      slidesPerView: 4,
+      spaceBetween: 20,
+      freeMode: true,
+      pagination: {
+          el: ".swiper-pagination",
+          clickable: true,
+      },
+      navigation: {
+        enabled: true
+      },
+      breakpoints: {
+          280: {
+              slidesPerView: 1.1,
+          },
+          420: {
+              slidesPerView: 1.5,
+          },
+          600: {
+              slidesPerView: 2.1,
+          },
+          768: {
+              slidesPerView: 2.8,
+          },
+          980: {
+              slidesPerView: 3,
+          },
+          1170: {
+            navigation: {
+              nextEl: '.new-slider-nav-next',
+              prevEl: '.new-slider-nav-prev',
+              hiddenClass: 'new-slider-nav-hidden',
+              disabledClass: 'new-slider-nav-hidden',
+            },
+          },
+          1300: {
+            slidesPerView: 4,
+            navigation: {
+              nextEl: '.new-slider-nav-next',
+              prevEl: '.new-slider-nav-prev',
+              hiddenClass: 'new-slider-nav-hidden',
+              disabledClass: 'new-slider-nav-hidden',
+            },
+          },
+      },
+  })
+  new Swiper(".ms-mobile-banner-slider", {
+      slidesPerView: 1,
+      loop: false,
+      pagination: {
+          el: ".swiper-pagination",
+          clickable: true,
+      },
+  })
+  let mobile_button = document.getElementById('get-mobile-navigation')
+  if(mobile_button) mobile_button.addEventListener('click', (e) => {
+      let mobile_sidebar = document.getElementById('mobile-sidebar')
+          if(mobile_sidebar.classList.contains('active')) {
+              mobile_sidebar.classList.remove('active')
+              document.body.classList.remove('lock-body')
+              document.body.removeAttribute('scroll')
+          } else {
+              mobile_sidebar.classList.add('active')
+              document.body.classList.add('lock-body')
+              document.body.setAttribute('scroll', 'no')
+          }
+  })
+  const $closeBtn = document.querySelector('.search-modal__close-btn');
+  $closeBtn.addEventListener('click', () => {
+      const searchModal = document.querySelector('.search-modal');
+      searchModal.classList.remove('search-modal--active');
+  })
+  if (window.matchMedia('(max-width: 767px)').matches) {
+      new Swiper('.ms-sub-nav-container .swiper', {
+          slidesPerView: 'auto',
+          speed: 200,
+          freeMode: true,
+          mousewheel: {
+              forceToAxis: true,
+            },
+            a11y: {
+              enabled: false,
+            },
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev'
+          }
+      })
+      new Swiper('.ms-sub-nav-container2 .swiper', {
+        slidesPerView: 'auto',
+        speed: 200,
+        freeMode: true,
+        mousewheel: {
+            forceToAxis: true,
+          },
+          a11y: {
+            enabled: false,
+          },
+        navigation: {
+          nextEl: '.swiper-button-next',
+          prevEl: '.swiper-button-prev'
+        }
+    })
+  } else {
+      const $navSwiper = document.querySelector('.ms-sub-nav-container .swiper');
+      $navSwiper.classList.remove('swiper');
+      const $navUl = $navSwiper.querySelector('.swiper-wrapper');
+      $navUl.classList.remove('swiper-wrapper');
+      const $navUlLi = $navUl.querySelectorAll('.swiper-slide');
+      $navUlLi.forEach(el => el.classList.remove('swiper-slide'));
+  }
+  new Swiper('.as-tab-navigation', {
+      slidesPerView: 'auto',
+      spaceBetween: 10,
+      speed: 200,
+      freeMode: true,
+      slidesOffsetBefore: 15,
+      a11y: {
+          enabled: false,
+      },
+      pagination: false
+  })
+  new Swiper('.refresh-services-nav-swiper', {
+    mousewheel: {
+      forceToAxis: true,
+    },
+    a11y: {
+      enabled: false,
+    },
+    loop: false,
+    // slidesPerView: 4,
+    spaceBetween: 10,
+    slidesPerView: 'auto',
+    freeMode: true,
+    pagination: false,
+    slidesOffsetBefore: 15,
+  })
+
+  new Swiper('.refresh-services-list-section > .swiper', {
+    loop: false,
+    // slidesPerView: 4,
+    spaceBetween: 19,
+    slidesPerView: 'auto',
+    freeMode: true,
+    mousewheel: {
+      forceToAxis: true,
+    },
+    pagination: {
+      el: ".swiper-pagination",
+      clickable: true,
+    },
+    a11y: {
+      enabled: false,
+    },
+    breakpoints: {
+      280: {
+        slidesPerView: 1.1,
+      },
+      420: {
+        slidesPerView: 1.5,
+      },
+      600: {
+        slidesPerView: 2.1,
+      },
+      768: {
+        slidesPerView: 2.1,
+      },
+      980: {
+        slidesPerView: 3.1,
+      },
+      1200: {
+        slidesPerView: 4,
+      },
+    },
+  });
+
+  // [start] Service filtration
+  ;(() => {
+    const isServicesPage = [
+      '/ru/products/services',
+      '/uz/products/services',
+      '/products/services',
+      '/ru/products/services/',
+      '/uz/products/services/',
+      '/products/services/'
+    ].some((path) => window.location.pathname.split('?')[0] === path) || document.location.href === 'http://localhost:3000/services.html';
+
+    if (isServicesPage) {
+      const $tabs = document.querySelectorAll('.as-tab-navigation ul li');
+      const $sections = document.querySelectorAll('.refresh-services-list-wrapper .refresh-services-list-section');
+
+      if ($tabs && $sections) {
+        $tabs.forEach($tab => {
+          $tab.addEventListener('click', () => {
+            const $tabButtons = document.querySelectorAll('.as-tab-navigation ul li button');
+            if ($tabButtons) {
+              $tabButtons.forEach(el => {
+                el.classList.remove('active');
+              })
+              
+              const $btn = $tab.querySelector('button');
+              $btn.classList.add('active');
+            }
+
+            if ($tab.getAttribute('data-id') === 'all') {
+              $sections.forEach($section => {
+                $section.style.display = 'block';
+              })
+            } else {
+              $sections.forEach($section => {
+                if ($tab.getAttribute('data-id') === $section.getAttribute('data-id')) {
+                  $section.style.display = 'block';
+                } else {
+                  $section.style.display = 'none';
+                }
+              })
+            }
+          })
+        })
+      }
+    }
+  })();
+  // [end] Service filtration
+
+  // [start] Packages filtration
+  ;(() => {
+    const isPackagesPage = [
+      '/products/packages',
+      '/ru/products/packages',
+      '/uz/products/packages',
+      '/products/packages/',
+      '/ru/products/packages/',
+      '/uz/products/packages/'
+    ].some((path) => window.location.pathname.split('?')[0] === path) || document.location.href === 'http://localhost:3000/packages.html';
+
+    if (isPackagesPage) {
+      const $tabs = document.querySelectorAll('.as-tab-navigation ul li button');
+      const $sections = document.querySelectorAll('.all-services-section .my-internet-packages-section');
+
+      if ($tabs && $sections) {
+        $tabs.forEach($tab => {
+          $tab.addEventListener('click', () => {
+            const $tabButtons = document.querySelectorAll('.as-tab-navigation ul li button');
+            if ($tabButtons) {
+              $tabButtons.forEach(el => {
+                el.classList.remove('active');
+              })
+              
+              $tab.classList.add('active');
+            }
+
+            if ($tab.getAttribute('tabname') === 'tab-all') {
+              $sections.forEach($section => {
+                $section.style.display = 'block';
+              })
+            } else {
+              $sections.forEach($section => {
+                if ($tab.getAttribute('tabname') === $section.getAttribute('id')) {
+                  $section.style.display = 'block';
+                } else {
+                  $section.style.display = 'none';
+                }
+              })
+            }
+          })
+        })
+      }
+    }
+  })();
+  // [end] Packages filtration
+
+  /* [start] Fix/customize Service page blocks */
+  (() => {
+    const isZamenaSimKarty = [
+      '/ru/products/services/zamena-sim-karty',
+      '/uz/products/services/zamena-sim-karty',
+      '/ru/products/services/zamena-sim-karty/',
+      '/uz/products/services/zamena-sim-karty/',
+    ].some((path) => window.location.pathname.split('?')[0] === path);
+
+    const isDelistesObscheniem = [
+      '/ru/products/services/delites-obsheniyem',
+      '/uz/products/services/delites-obsheniyem',
+      '/ru/products/services/delites-obsheniyem/',
+      '/uz/products/services/delites-obsheniyem/',
+    ].some((path) => window.location.pathname.split('?')[0] === path);
+
+    const isObmenMinNaGb = [
+      '/ru/products/services/obmen-minut-na-mb',
+      '/uz/products/services/obmen-minut-na-mb',
+      '/ru/products/services/obmen-minut-na-mb/',
+      '/uz/products/services/obmen-minut-na-mb/',
+    ].some((path) => window.location.pathname.split('?')[0] === path);
+
+    if (isZamenaSimKarty) {
+      const $blocks = document.querySelectorAll('.tariff-page-main .tariff-page-block');
+      if ($blocks) {
+        if ($blocks.length === 2) {
+          const $secondBlock = $blocks[1];
+          const $list = $secondBlock.querySelector('.tariff-page-main__list');
+          
+          if ($list) {
+            const $btn = $list.querySelector('.tariff-page-accordion');
+
+            if ($btn) {
+              $blocks[0].append($list);
+              $secondBlock.style.display = 'none';
+
+              setTimeout(() => {
+                $btn.click();
+              }, 0);
+            }
+
+          }
+        }
+      }
+    }
+
+    if (isDelistesObscheniem) {
+      const $blocks = document.querySelectorAll('.tariff-page-main .tariff-page-block');
+
+      if ($blocks) {
+        if ($blocks.length === 2) {
+          const $secondBlock = $blocks[1];
+          const $firstPanel = $secondBlock.querySelector('.tariff-page-accordion__panel .tariff-page-accordion__content');
+          const $accord = $secondBlock.querySelector('.tariff-page-accordion');
+          const $title = $secondBlock.querySelector('.tariff-page-block__title');
+
+          if ($firstPanel && $accord && $title) {
+            $title.insertAdjacentElement('afterend', $firstPanel);
+            $accord.remove();
+          }
+        }
+      }
+    }
+
+    if (isObmenMinNaGb) {
+      const tables = document.querySelectorAll('.tariff-page-accordion__panel .tariff-page-accordion__content table');
+      if (tables) {
+        tables.forEach($tbl => {
+          const $div = document.createElement('div');
+          $div.className = 'tariff-page-accordion__table-wrap';
+          $div.append($tbl.cloneNode(true));
+          $tbl.insertAdjacentElement('afterend', $div);
+          $tbl.remove();
+        });
+      }
+
+      const $blocks = document.querySelectorAll('.tariff-page-main .tariff-page-block');
+      if ($blocks) {
+        if ($blocks.length === 2) {
+          const $secondBlock = $blocks[1];
+
+          const $firstPanel = $secondBlock.querySelector('.tariff-page-accordion__panel .tariff-page-accordion__content');
+          const $accord = $secondBlock.querySelector('.tariff-page-accordion');
+          const $title = $secondBlock.querySelector('.tariff-page-block__title');
+
+          if ($firstPanel && $accord && $title) {
+            $title.insertAdjacentElement('afterend', $firstPanel);
+            $accord.remove();
+          }
+        }
+      }
+    }
+  })();
+  /* [end] */
+
+  /* [start] Spring Yarmarka 2023 */
+  (() => {
+    const isSpringPromoPage = [
+      '/ru/events/bez-kategorii/spring_promotion.html',
+      '/uz/events/bez-kategorii/spring_promotion.html',
+      '/ru/events/actions/spring_promotion.html',
+      '/uz/events/actions/spring_promotion.html',
+    ].some((path) => window.location.pathname.split('?')[0] === path);
+
+    if (isSpringPromoPage) {
+      const curr_lang = document.querySelector('html').lang;
+      const $whiteBox = document.querySelector('.main-single-event-ms .ms-event-white-box');
+      const $boxFooter = document.querySelector('.main-single-event-ms .ms-event-white-box .ms-event-white-box-footer');
+
+      const hasBoxFooter = Boolean($boxFooter);
+
+      const $container = hasBoxFooter ? $boxFooter : $whiteBox;
+
+      if ($container) {
+        const method = hasBoxFooter ? 'beforebegin' : 'beforeend';
+
+        if (curr_lang === 'ru') {
+          $container.insertAdjacentHTML(method, `
+            <div>
+              <button class="tariff-page-accordion">Как проверить остаток?</button>
+              <div class="tariff-page-accordion__panel">
+                  <div class="tariff-page-accordion__content">
+                    <p>
+                      Месячные интернет-пакеты со скидкой – <b>*103#</b><br>
+                      Интернет-пакеты на YouTube, социальные сети, мессенджеры и 40 GB – <b>*120#</b><br>
+                      Интернет-пакеты 1 TB (1 024 GB) и на PUBG –<b>*125#</b><br>
+                      Бонус 2 023 MB – <b>*108#</b><br>
+                      Бонус 2 023 минут и SMS – <b>*107#</b>
+                    </p>
+                  </div>
+              </div>
+              <button class="tariff-page-accordion">Дополнительная информация</button>
+              <div class="tariff-page-accordion__panel">
+                  <div class="tariff-page-accordion__content">
+                    <p>
+                    • Месячные интернет-пакеты со скидкой доступны для всех тарифов предоплатой системы расчетов, за исключением тарифов «Детский», «ProInternet 1 GB», «ProInternet 3 GB».<br>
+                    • Интернет-пакеты 1 TB (1 024 GB), на YouTube, социальные сети, мессенджеры, 40 GB и PUBG MOBILE доступны для всех тарифов предоплатой системы расчетов, за исключением тарифа «Детский».<br>
+                    • Бонус 2 023 MB доступен для всех тарифов предоплатой системы расчетов, за исключением тарифов «Welcome», «Детский», «Победа!».<br>
+                    • Бонус 2 023 SMS доступен для всех тарифов предоплатой системы расчетов, за исключением тарифа «Победа!».
+                    </p>
+                  </div>
+              </div>
+            </div>
+          `);
+        } else {
+          $container.insertAdjacentHTML(method, `
+            <div>
+              <button class="tariff-page-accordion">Qoldiq qanday tekshiriladi?</button>
+              <div class="tariff-page-accordion__panel">
+                  <div class="tariff-page-accordion__content">
+                    <p>
+                    Chegirmali oylik internet-paketlar – <b>*103#</b><br>
+                    YouTube, ijtimoiy tarmoqlar, messenjerlar va 40 GB internet-paketlari – <b>*120#</b><br>
+                    1 TB (1 024 GB) va PUBG uchun internet-paketlar – <b>*125#</b><br>
+                    Bonus 2 023 MB – <b>*108#</b><br>
+                    Bonus 2 023 daqiqa va SMS – <b>*107#</b>
+                    </p>
+                  </div>
+              </div>
+              <button class="tariff-page-accordion">Qo‘shimcha ma‘lumot</button>
+              <div class="tariff-page-accordion__panel">
+                  <div class="tariff-page-accordion__content">
+                    <p>
+                    • Chegirmali oylik internet-paketlar «Bolajon», «ProInternet 1 GB», «ProInternet 3 GB» tariflaridan tashqari oldindan to‘lov tizimining barcha tariflarida amal qiladi.<br>
+                    • 1 TB (1 024 GB), YouTube, ijtimoiy tarmoqlar, messenjerlar, 40 GB va PUBG MOBILE uchun internet-paketlar «Bolajon», tarifidan tashqari oldindan to‘lov tizimining barcha tariflarida amal qiladi.<br>
+                    • Bonus 2 023 MB «Welcome», «Bolajon», «G‘alaba!» tariflaridan tashqari oldindan to‘lov tizimining barcha tariflarida amal qiladi.<br>
+                    • Bonus 2 023 SMS «G‘alaba!» tarifidan tashqari oldindan to‘lov tizimining barcha tariflarida amal qiladi.
+                    </p>
+                  </div>
+              </div>
+            </div>
+        `);
+        }
+      }
+    }
+  })();
+  /* [end] Spring Yarmarka 2023 */
+
+  /* [start] Mega Drive (akciya) */
+  (() => {
+    document.querySelectorAll('.mobile-sidebar-navigation a').forEach(el => {
+      let url = new URL(el.href);
+
+      if (url.pathname === '/uz/mega-drive-promotion' || url.pathname === '/ru/mega-drive-promotion') {
+          el.style.background = '#41C0AD';
+          el.style.color = '#ffffff';
+          el.style.borderRadius = '8px';
+      }
+    });
+
+    document.querySelectorAll('.ms-content_menu .menu-item a').forEach(el => {
+      let url = new URL(el.href);
+
+      if (url.pathname === '/uz/mega-drive-promotion' || url.pathname === '/ru/mega-drive-promotion') {
+          el.style.background = '#41C0AD';
+          el.style.color = '#ffffff';
+      }
+    });
+
+    if(['/ru/mega-drive-promotion', '/uz/mega-drive-promotion'].includes(document.location.pathname)) {
+      const $contentContainer = document.querySelector('.ms-single-content');
+      const $firstWhiteBlock = document.querySelector('.ms-single-content-component-box');
+      const $secondWhiteBlock = document.querySelector('.tariff-page-block');
+
+      const $accordionBtns = document.querySelectorAll('.tariff-page-accordion');
+      const $accordionContent = document.querySelectorAll('.tariff-page-accordion__content');
+
+      if ($accordionBtns) {
+        $accordionBtns.forEach(el => {
+          el.style = 'font-size: 16px!important;'
+        })
+      }
+
+      if ($accordionContent) {
+        $accordionContent.forEach(el => {
+          el.style = 'font-size: 16px!important;'
+        })
+      }
+
+      if ($contentContainer) {
+        $contentContainer.style = 'margin-bottom: 0;';
+      }
+
+      if ($firstWhiteBlock) {
+        $firstWhiteBlock.style = 'border-bottom-left-radius: 0; border-bottom-right-radius: 0;';
+      }
+
+      if ($secondWhiteBlock) {
+        $secondWhiteBlock.style = 'padding-top: 0; border-top-left-radius: 0; border-top-right-radius: 0;';
+      }
+    }
+  })();
+  /* [end] Mega Drive (akciya) */
+
+  // accordion
+  let acc = document.getElementsByClassName("tariff-page-accordion");
+
+  if (acc) {
+    for (let i = 0; i < acc.length; i++) {
+      acc[i].addEventListener("click", function () {
+        this.classList.toggle("tariff-page-accordion--active");
+        let panel = this.nextElementSibling;
+        if (panel.style.maxHeight) {
+          panel.style.maxHeight = null;
+        } else {
+          panel.style.maxHeight = panel.scrollHeight + "px";
+        }
+      });
+    }
+  }
+
+  /* [start] Malika position fix */
+  window.addEventListener('scroll', () => {
+    if (Math.ceil(window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+        document.body.classList.add('malika-pos-fix')
+    } else {
+        document.body.classList.remove('malika-pos-fix')
+    }
+  })
+  /* [end] Malika position fix */
+}
+function close_mobile_sidebar() {
+  if(document.querySelector('#mobile-sidebar')) document.querySelector('#mobile-sidebar').classList.remove('active')
+  document.body.classList.remove('lock-body')
+  document.body.removeAttribute('scroll')
+}
+function get_search() {
+  if(document.getElementById('main-search-frame')) {
+      document.getElementById('main-search-frame').classList.add('actived')
+  }
+
+  const searchModal = document.querySelector('.search-modal');
+  searchModal.classList.add('search-modal--active');
+
+  const input = searchModal.querySelector('.search-modal__input-wrap > input');
+  if (input) {
+      input.value = '';
+      input.focus();
+  }
+}

@@ -1,0 +1,212 @@
+/* Refresh forms */
+.rf-forms__description {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 16px;
+  color: #9F9F9F;
+  margin-bottom: 9px;
+}
+.rf-forms__input-group {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  width: 100%;
+  border: 1px solid #CBCBCB;
+  border-radius: 8px;
+}
+.rf-forms__input-group > .rf-forms__input {
+  border: none;
+}
+.rf-forms__input-group--prepend {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  margin: 1px;
+  padding: 0 9px;
+  background: #F0F2F4;
+  border-radius: 6px 0px 0px 6px;
+}
+.rf-forms__input-group--postpend {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  margin: 1px;
+  padding: 0 9px;
+  background: #F0F2F4;
+  border-radius: 0px 6px 6px 0px;
+}
+.rf-forms__input {
+  padding: 0 14px !important;
+  margin: 1px;
+  width: 100%;
+  font-family: "PT sans";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 21px;
+  color: #272727;
+  border-radius: 8px;
+  min-height: 38px;
+  outline: none;
+  border: 1px solid #CBCBCB;
+}
+.rf-forms__input::-webkit-input-placeholder {
+  color: #9F9F9F;
+}
+.rf-forms__input::-moz-placeholder {
+  color: #9F9F9F;
+}
+.rf-forms__input:-ms-input-placeholder {
+  color: #9F9F9F;
+}
+.rf-forms__input::-ms-input-placeholder {
+  color: #9F9F9F;
+}
+.rf-forms__input::placeholder {
+  color: #9F9F9F;
+}
+.rf-forms__input:focus {
+  outline: none;
+  -webkit-box-shadow: 0px 0px 5px #ffc800;
+  box-shadow: 0px 0px 5px #ffc800;
+}
+.rf-forms__input-label {
+  font-family: "PT sans";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 21px;
+  color: #272727;
+  margin-bottom: 4px;
+  text-align: left;
+}
+.rf-forms__link-btn {
+  padding: 0;
+  font-family: "PT sans";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 16px;
+  text-align: center;
+  color: #4074C1;
+  background: none;
+  border: none;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  cursor: pointer;
+}
+.rf-forms__link-btn-icon {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  margin-right: 5px;
+}
+.rf-forms__link-btn:disabled {
+  color: #979797;
+}
+.rf-forms__link-btn:not(:disabled):hover {
+  color: #FFC800;
+}
+.rf-forms__link-btn:not(:disabled):active {
+  color: #eab800;
+}
+.rf-forms__btn {
+  background: none;
+  border: none;
+  font-family: "PT sans";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  padding: 10px 20px;
+  background-color: #FFC800;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 8px;
+}
+.rf-forms__btn:disabled {
+  color: #979797;
+  background-color: #EAEAEA;
+}
+.rf-forms__btn:not(:disabled):hover {
+  cursor: pointer;
+  background-color: #ffd53d;
+}
+.rf-forms__btn:not(:disabled):active {
+  background-color: #eab800;
+}
+.rf-forms__btn-icon {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  margin-right: 5px;
+}
+.rf-forms__large-btn {
+  background: none;
+  border: none;
+  font-family: "PT sans";
+  border-radius: 8px;
+  padding: 10px 13px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 4px;
+  min-height: 43px;
+  background-color: #ffc800;
+  color: #000000;
+  font-family: "PT Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 13px;
+}
+.rf-forms__large-btn-icon {
+  height: 23px;
+}
+.rf-forms__large-btn:disabled {
+  cursor: default;
+  color: #979797;
+  background-color: #EAEAEA;
+}
+.rf-forms__large-btn:not(:disabled):hover {
+  cursor: pointer;
+  background-color: #ffd53d;
+}
+.rf-forms__large-btn:not(:disabled):active {
+  background-color: #eab800;
+}
+.rf-forms__large-btn--purple {
+  background-color: #1d1346;
+  color: #ffffff;
+}
+.rf-forms__large-btn--purple:not(:disabled):hover {
+  cursor: pointer;
+  background-color: #362a68;
+}
+.rf-forms__large-btn--purple:not(:disabled):active {
+  background-color: #100929;
+}
